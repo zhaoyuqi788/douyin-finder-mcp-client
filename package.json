@@ -1,0 +1,11 @@
+{
+  "name": "douyin-finder-mcp-installer",
+  "version": "0.4.3",
+  "private": true,
+  "type": "module",
+  "engines": {"node": ">=22.0.0"},
+  "scripts": {
+    "test": "node --test",
+    "install:mcp": "node install.mjs"
+  }
+}

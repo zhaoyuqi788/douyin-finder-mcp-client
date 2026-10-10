@@ -1,0 +1,22 @@
+name: Client installation checks
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  installer:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm test
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+        working-directory: client
+      - run: node --check client/qoder-https.mjs
+      - run: node --check client/https-oauth.mjs
+      - name: Real installation with a disposable config
+        run: node install.mjs --config "${{ runner.temp }}/douyin-install-check.json"

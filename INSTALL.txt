@@ -1,0 +1,30 @@
+请实际帮我在这台电脑安装 Douyin Finder V2，并在我现在使用的 coding 软件中注册、启用 douyin_finder_v2 MCP，例如 Qoder / Qoder CN IDE。完成安装和验收，不要只给我教程。
+
+GitHub 项目：https://github.com/zhaoyuqi788/douyin-finder-mcp-client
+本安装指令：https://raw.githubusercontent.com/zhaoyuqi788/douyin-finder-mcp-client/main/INSTALL.txt
+服务 HTTPS：https://d34vctdvg0hn6s.cloudfront.net/mcp
+连接器版本：0.4.3。仓库已包含连接器源码、锁定依赖和安装脚本，无需飞书下载权限。
+
+1. 识别我的操作系统、当前 coding 软件及版本。能从会话判断就继续，无法判断时只问软件名称。检查 Node.js 22 或更新版本及 npm；缺少时从 Node.js 官方来源或可信包管理器安装。
+
+2. 把仓库克隆到当前用户有写入权限的固定 tools 目录：git clone https://github.com/zhaoyuqi788/douyin-finder-mcp-client.git。若没有 git，可下载 https://github.com/zhaoyuqi788/douyin-finder-mcp-client/archive/refs/heads/main.zip 后解压。不要把目录放在临时文件夹里。读取 README.md 和 install.mjs，确认安装范围后继续。
+
+3. 确认目标软件实际使用的 MCP 配置入口或文件。Qoder / Qoder CN IDE 在设置 → MCP → 我的服务 → 添加中打开配置 JSON，以该文件为准。已存在的 ~/.qoder-cn/settings.json 或 ~/.qoder/settings.json 可作为候选，要核对它是否属于当前软件；不要把 CLI 配置目录当成所有 IDE 版本的目录。
+
+4. 在仓库根目录执行 node install.mjs --config "实际 MCP 配置 JSON 文件的绝对路径"。脚本会在 client 中运行 npm ci --ignore-scripts，备份原配置，只合并 mcpServers.douyin_finder_v2，并写入本机 Node 可执行文件和 client/qoder-https.mjs 的绝对路径。保留其他 MCP 服务和软件设置。此客户端通过 STDIO 接入本机软件，再通过 HTTPS 连接 AWS 服务。已有 Qoder CN 配置也可执行 node install.mjs --app qoder-cn，已有 Qoder 配置可用 --app qoder；找不到时提供真实 --config 路径。
+
+5. 目标软件格式不是 mcpServers JSON、或你无法直接编辑其配置时，执行 node install.mjs --output "准备导入的配置 JSON 的绝对路径"，再按软件自己的格式合并 command 和 args。脚本遇到 JSONC 或无效 JSON 会停止并保留原文件，由你确认格式后完成合并。不得覆盖已有服务。无法操作界面时先准备完整配置，只交给我必要的点击；不能把生成模板当成已经注册成功。
+
+6. 在软件中启用 douyin_finder_v2，让我亲自在浏览器用管理员已开通、已验证邮箱的 MCP 账号登录。安装客户端不创建账号。密码只在网页输入，不放聊天、配置或 GitHub；令牌不保存到磁盘。保持 127.0.0.1:53682 空闲，避免同时启动两个登录连接器。看到“登录完成。可回到 Qoder。”后检查 MCP 状态；首次启动超时可在完成登录后关闭再启用该服务。
+
+7. 在目标软件中确认服务可用并加载 9 个工具：search_kols、get_kol、read_evidence、visual_top5、create_extraction、extraction_status、extraction_result、cancel_extraction、get_credits。实际调用 get_credits，再以 {"limit":1} 调用 search_kols，确认真实返回。安装验收仅做读取，不主动创建扣积分的提人任务。若未完成登录或工具调用，明确说明未完成，不要把配置写好当成可用了。
+
+8. 最后告诉我固定安装目录、目标软件及版本、实际配置路径、备份位置、工具数量和真实验收结果。
+
+之后我给出选人需求时：先 get_credits，再 create_extraction，同一次需求复用同一个 idempotency_key，随后 extraction_status 查进度、extraction_result 取结果。有效名单写入扣 1 个内部积分，重复提交同一幂等键和重复取结果不重复扣分。保留 backend_id、原始数值及日期，缺失信息注明未知。limit 最大 20，模型只从本次候选中选择。
+
+客户端只需 Node.js、连接器和 coding 软件；数据和模型在服务主机，主机需要在线。公开 GitHub 地址方便下载安装，不等于获得服务账号权限。
+
+Qoder IDE 官方 MCP 说明：https://docs.qoder.com/zh/user-guide/chat/model-context-protocol
+Qoder CN IDE 官方说明：https://docs.qoder.cn/user-guide/guide-for-using-mcp
+新版 Qoder 连接器说明：https://docs.qoder.com/zh/qoder/connectors

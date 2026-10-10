@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "douyin_finder_v2": {
+      "command": "node",
+      "args": [
+        "REPLACE_WITH_CLIENT_PATH/qoder-https.mjs"
+      ]
+    }
+  }
+}

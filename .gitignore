@@ -1,0 +1,9 @@
+node_modules/
+mcp-config.generated.json
+*.bak-*
+*.tmp-*
+.test-tmp/
+.DS_Store
+._*
+.env
+.env.*
