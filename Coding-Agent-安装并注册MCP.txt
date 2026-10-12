@@ -3,7 +3,7 @@
 GitHub 项目：https://github.com/zhaoyuqi788/douyin-finder-mcp-client
 本安装指令：https://raw.githubusercontent.com/zhaoyuqi788/douyin-finder-mcp-client/main/INSTALL.txt
 服务 HTTPS：https://d34vctdvg0hn6s.cloudfront.net/mcp
-连接器版本：0.4.7。仓库已包含连接器源码、锁定依赖和安装脚本，无需飞书下载权限。
+连接器版本：0.4.8。仓库已包含连接器源码、锁定依赖和安装脚本，无需飞书下载权限。
 当前部署状态（2026-10-12）：邀请码自助注册已开放。现有账号直接登录；新用户需领取有效邀请码，自行注册、设置密码、验证邮箱后兑换开通。
 
 如果用户已在同一条消息中提供邀请码，沿用该码指导开户，无需再次向管理员索取账号或密码。邀请码用于开通 MCP；注册邮箱验证由用户点击验证邮件完成。可转发的完整文字模板：https://raw.githubusercontent.com/zhaoyuqi788/douyin-finder-mcp-client/main/FORWARD.txt 。真实邀请码仅放在发给单个用户的私信中。
@@ -22,7 +22,7 @@ GitHub 项目：https://github.com/zhaoyuqi788/douyin-finder-mcp-client
 
 7. 在目标软件中确认服务可用并加载 9 个工具：search_kols、get_kol、read_evidence、visual_top5、create_extraction、extraction_status、extraction_result、cancel_extraction、get_credits。实际调用 get_credits，再以 {"limit":1} 调用 search_kols，确认真实返回。安装验收仅做读取，不主动创建扣积分的提人任务。若未完成登录或工具调用，明确说明未完成，不要把配置写好当成可用了。
 
-8. 已有安装先更新固定目录的完整 client 和仓库文件，再重跑安装脚本；保留邀请码注册与管理页面。在 Extensions → Connectors（或该版本 MCP 设置）关闭再启用 douyin_finder_v2，并新开一个任务验收，旧进程不会自动加载新版。0.4.7 会对会话丢失、网络中断及 HTTP 5xx 等故障自动重建连接并重试一次；提人保持原 idempotency_key。权限拒绝、限额、参数错误和用户取消不重试；任务失败不自动重跑。服务端会话改为闲置 15 分钟过期，持续调用会延长会话。
+8. 已有安装先更新固定目录的完整 client 和仓库文件，再重跑安装脚本；保留邀请码注册与管理页面。在 Extensions → Connectors（或该版本 MCP 设置）关闭再启用 douyin_finder_v2，并新开一个任务验收，旧进程不会自动加载新版。0.4.8 会对会话丢失、网络中断及 HTTP 5xx 等故障自动重建连接并重试一次；提人保持原 idempotency_key。权限拒绝、限额、参数错误和用户取消不重试；任务失败不自动重跑。服务端会话改为闲置 15 分钟过期，持续调用会延长会话。
 
 9. 最后告诉我固定安装目录、目标软件及版本、实际配置路径、备份位置、工具数量和真实验收结果。
 

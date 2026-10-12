@@ -11,7 +11,7 @@ body:
     id: client_version
     attributes:
       label: 客户端版本
-      placeholder: 例如 0.4.7；不确定时填写未知
+      placeholder: 例如 0.4.8；不确定时填写未知
     validations:
       required: true
   - type: textarea

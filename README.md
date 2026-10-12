@@ -1,6 +1,6 @@
 # Douyin Finder MCP 客户端
 
-部署状态（2026-10-12）：邀请码永久有效，每个新账号 200 积分，使用 0.4.7 客户端。现有账号直接登录，新用户自行注册、验证邮箱并兑换管理员发放的邀请码。
+部署状态（2026-10-12）：邀请码永久有效，每个新账号 200 积分，使用 0.4.8 客户端。现有账号直接登录，新用户自行注册、验证邮箱并兑换管理员发放的邀请码。
 
 把以下内容复制给你正在使用的软件中的 coding agent，例如 Qoder / Qoder CN：
 
@@ -12,7 +12,7 @@
 
 https://raw.githubusercontent.com/zhaoyuqi788/douyin-finder-mcp-client/main/INSTALL.txt
 
-仓库包含安装说明、安装脚本和 0.4.7 连接器；可以直接克隆，或下载 GitHub 的 Code → Download ZIP。无需从飞书取包。发布包见 [Releases](https://github.com/zhaoyuqi788/douyin-finder-mcp-client/releases)。
+仓库包含安装说明、安装脚本和 0.4.8 连接器；可以直接克隆，或下载 GitHub 的 Code → Download ZIP。无需从飞书取包。发布包见 [Releases](https://github.com/zhaoyuqi788/douyin-finder-mcp-client/releases)。
 
 ## 安装和注册
 
@@ -49,7 +49,7 @@ node install.mjs --output "准备导入的配置 JSON 的绝对路径"
 
 客户端依赖安装和配置注册成功，不代表远程登录与工具验收已完成。另一台电脑的网络和登录仍需实际验证。
 
-## 更新与连接恢复（0.4.7）
+## 更新与连接恢复（0.4.8）
 
 已有安装在固定目录更新仓库，再运行 `node install.mjs --config "实际配置文件绝对路径"`。下载包安装的用户先把新版解压到固定目录，再运行安装脚本。需要更新整个 `client` 目录，保留邀请码注册与管理页面。之后在 Extensions → Connectors（或该版本 MCP 设置）关闭再启用服务，并新开一个任务验收；正在运行的旧连接器不会自动加载新代码。
 
@@ -95,7 +95,7 @@ V1 提供历史 KOL 数据；V2 用服务主机上的模型异步选人。数据
 
 用户可把排查交给当前软件的 coding agent。完成必要排查后，由 agent 使用用户自己的 GitHub 登录在 [Issues](https://github.com/zhaoyuqi788/douyin-finder-mcp-client/issues) 提交，返回真实链接；相同问题已存在时补充原 Issue。请附环境和客户端版本、发生时间、复现步骤、预期与实际行为、错误码及脱敏日志。这里也接受注册、登录和服务端问题，无需先判断责任组件。
 
-密码、邀请码、验证码、OAuth 令牌、Cookie、完整配置和私人业务信息不得公开。GitHub 未登录时先完成登录；无法提交时保存报告并使用 [问题创建入口](https://github.com/zhaoyuqi788/douyin-finder-mcp-client/issues/new?template=bug_report.yml)，明确说明尚未提交。安装指令会提醒 agent 执行这一步。
+密码、邀请码、验证码、OAuth 令牌、Cookie、完整配置和私人业务信息不得公开。GitHub 未登录时先完成登录；无法提交时保存报告并使用 [问题创建入口](https://github.com/zhaoyuqi788/douyin-finder-mcp-client/issues/new?template=bug_report.yml)，明确说明尚未提交。安装指令和连接器的使用提示都会提醒 agent 执行这一步。
 
 ## 验证安装脚本
 

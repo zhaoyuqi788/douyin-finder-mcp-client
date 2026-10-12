@@ -156,7 +156,7 @@ export async function connectRemote({onAuthorization = openLogin, onPhase = () =
   const closePortal=async()=>{clearTimeout(portalTimer);if(serverClosed)return;serverClosed=true;server.closeAllConnections();await new Promise(resolve=>server.close(resolve));};
   const transport = () => new StreamableHTTPClientTransport(new URL(endpoint), {authProvider: provider, fetch: pinnedFetch});
   try {
-    client = new Client({name: 'douyin-qoder-https', version: '0.4.7'});
+    client = new Client({name: 'douyin-qoder-https', version: '0.4.8'});
     let wire = transport();
     try {await client.connect(wire);} catch (e) {
       if (!(e instanceof UnauthorizedError)) throw e;
@@ -169,7 +169,7 @@ export async function connectRemote({onAuthorization = openLogin, onPhase = () =
         portal.setPhase('email_verification_required');onPhase('waiting_email_verification');
         await Promise.race([portal.verified,new Promise((_,reject)=>setTimeout(()=>reject(new Error('verification_timeout')),10*60000).unref())]);
         tokens=undefined;verifier=undefined;used=false;recheckingEmail=true;state=randomBytes(32).toString('base64url');resetCode();
-        await client.close().catch(()=>{});client=new Client({name:'douyin-qoder-https',version:'0.4.7'});wire=transport();
+        await client.close().catch(()=>{});client=new Client({name:'douyin-qoder-https',version:'0.4.8'});wire=transport();
         try{await client.connect(wire);}catch(next){if(!(next instanceof UnauthorizedError))throw next;}
       }
       if(account?.status==='email_verification_required')throw new Error('email_verification_required');
@@ -184,7 +184,7 @@ export async function connectRemote({onAuthorization = openLogin, onPhase = () =
         portalTimer=setTimeout(()=>portal.fail('invalid_token'),Math.max(1,tokens.expires_in-10)*1000);
         return{closed:portal.closed,close:async()=>{tokens=undefined;verifier=undefined;await client?.close().catch(()=>{});await closePortal();}};
       }
-      client = new Client({name: 'douyin-qoder-https', version: '0.4.7'});
+      client = new Client({name: 'douyin-qoder-https', version: '0.4.8'});
       wire = transport(); await client.connect(wire);
     }
     onPhase('connected');portal.setPhase('ready');retained=true;
@@ -192,7 +192,7 @@ export async function connectRemote({onAuthorization = openLogin, onPhase = () =
     portalTimer=setTimeout(()=>closePortal().catch(()=>{}),5000);portalTimer.unref();
     const resumed=resumableClient(client,async()=>{
       onPhase('reconnecting_session');await client.close().catch(()=>{});
-      client=new Client({name:'douyin-qoder-https',version:'0.4.7'});
+      client=new Client({name:'douyin-qoder-https',version:'0.4.8'});
       wire=transport();try{await client.connect(wire);}catch(e){await client.close().catch(()=>{});throw e;}
       onPhase('connected');return client;
     });
