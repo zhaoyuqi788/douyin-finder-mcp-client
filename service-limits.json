@@ -30,5 +30,12 @@
   "internalCreditsPerCompletedJob": 1,
   "totalTokenCeiling": null,
   "sessionExpirationPolicy": "idle_since_last_authenticated_post_completed",
-  "automaticRetriesPerSafeCall": 1
+  "automaticRetriesPerSafeCall": 1,
+  "invitationPolicy": {
+    "singleUse": true,
+    "expiresAt": null,
+    "initialCredits": 200,
+    "batchSizeDefault": 10,
+    "batchSizeMax": 100
+  }
 }
