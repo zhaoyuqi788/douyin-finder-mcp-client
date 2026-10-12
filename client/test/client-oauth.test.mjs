@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {callbackCode, callback, issuer, endpoint, tokenAudience, pinnedFetch, resumableClient} from '../client/https-oauth.mjs';
+import {callbackCode, callback, issuer, endpoint, tokenAudience, pinnedFetch, resumableClient} from '../https-oauth.mjs';
 import {StreamableHTTPError} from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import {McpError, ErrorCode} from '@modelcontextprotocol/sdk/types.js';
 function valid() {const u = new URL(callback); u.searchParams.set('state', 'test-state'); u.searchParams.set('iss', issuer); u.searchParams.set('code', 'synthetic-code'); return u;}
