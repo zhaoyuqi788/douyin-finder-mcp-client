@@ -6,6 +6,8 @@
 
 > 请读取 https://github.com/zhaoyuqi788/douyin-finder-mcp-client 中的 INSTALL.txt，实际安装 Douyin Finder V2，并在我现在使用的软件中注册、启用 douyin_finder_v2 MCP。保留已有配置，完成浏览器登录后的只读工具验收，不要只给我教程。
 
+管理员一次性给新用户的完整文字见 [FORWARD.txt](FORWARD.txt)：填写只发给该用户的单次邀请码，连同安装、注册、邮箱验证、兑换及 Issue 反馈说明一起私下发送。用户自己注册和设置密码，邀请码永久有效，开通获得 200 积分。
+
 安装指令的纯文本地址：
 
 https://raw.githubusercontent.com/zhaoyuqi788/douyin-finder-mcp-client/main/INSTALL.txt
@@ -88,6 +90,12 @@ V1 提供历史 KOL 数据；V2 用服务主机上的模型异步选人。数据
 选人时先查积分，提交 `create_extraction`，同一次需求复用 `idempotency_key`，用 `extraction_status` 查进度，`extraction_result` 取名单。有效名单写入扣 1 个内部积分，同一幂等键的重试和重复取结果不重复扣分。保留 `backend_id`、原始数值及日期；缺失信息为未知。`limit` 最大 100，并同时限定候选和结果数量。
 
 连接器的 OAuth audience 保留原授权标识，它不是访问地址；实际网络目标为 AWS 与 Auth0。
+
+## 遇到问题直接提交 Issue
+
+用户可把排查交给当前软件的 coding agent。完成必要排查后，由 agent 使用用户自己的 GitHub 登录在 [Issues](https://github.com/zhaoyuqi788/douyin-finder-mcp-client/issues) 提交，返回真实链接；相同问题已存在时补充原 Issue。请附环境和客户端版本、发生时间、复现步骤、预期与实际行为、错误码及脱敏日志。这里也接受注册、登录和服务端问题，无需先判断责任组件。
+
+密码、邀请码、验证码、OAuth 令牌、Cookie、完整配置和私人业务信息不得公开。GitHub 未登录时先完成登录；无法提交时保存报告并使用 [问题创建入口](https://github.com/zhaoyuqi788/douyin-finder-mcp-client/issues/new?template=bug_report.yml)，明确说明尚未提交。安装指令会提醒 agent 执行这一步。
 
 ## 验证安装脚本
 
