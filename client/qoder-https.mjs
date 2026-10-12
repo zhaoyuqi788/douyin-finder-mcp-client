@@ -10,11 +10,11 @@ try {
   remote = await connectRemote({onPhase: phase => process.stderr.write('Douyin Finder: ' + phase + '\n')});
   const {tools} = await remote.client.listTools();
   const allowed = new Set(tools.map(tool => tool.name));
-  server = new Server({name: 'douyin-finder-https-client', version: '0.4.5'}, {capabilities: {tools: {}}, instructions: remote.client.getInstructions()});
+  server = new Server({name: 'douyin-finder-https-client', version: '0.4.6'}, {capabilities: {tools: {}}, instructions: remote.client.getInstructions()});
   server.setRequestHandler(ListToolsRequestSchema, async () => ({tools}));
-  server.setRequestHandler(CallToolRequestSchema, async request => {
+  server.setRequestHandler(CallToolRequestSchema, async (request,{signal}) => {
     if (!allowed.has(request.params.name)) throw new Error('Unknown tool');
-    return remote.client.callTool({name: request.params.name, arguments: request.params.arguments ?? {}});
+    return remote.client.callTool({name: request.params.name, arguments: request.params.arguments ?? {}},undefined,{signal});
   });
   await server.connect(new StdioServerTransport());
   let stopping = false;

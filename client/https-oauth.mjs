@@ -4,6 +4,7 @@ import {spawn} from 'node:child_process';
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StreamableHTTPClientTransport, StreamableHTTPError} from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import {UnauthorizedError} from '@modelcontextprotocol/sdk/client/auth.js';
+import {McpError, ErrorCode} from '@modelcontextprotocol/sdk/types.js';
 import {createAccountPortal} from './account-portal.mjs';
 
 export const endpoint = 'https://d34vctdvg0hn6s.cloudfront.net/mcp';
@@ -16,26 +17,39 @@ export const callback = 'http://127.0.0.1:53682/callback';
 const scope = 'openid profile email offline_access kol:read extract:create';
 
 export function resumableClient(initial, reconnect) {
-  let current=initial, pending, closed=false;
+  let current=initial, queue=Promise.resolve(), closed=false;
   const reads=new Set(['search_kols','get_kol','read_evidence','visual_top5','get_credits','extraction_status','extraction_result','cancel_extraction']);
+  const transient=e=>{
+    if(e instanceof StreamableHTTPError||e?.constructor?.name==='StreamableHTTPError')
+      return [404,408,-1].includes(e.code)||(e.code>=500&&e.code<=599)||
+        (e.code===409&&/"error"\s*:\s*"session_busy"/.test(e.message));
+    if(e instanceof McpError||e?.constructor?.name==='McpError')
+      return [ErrorCode.ConnectionClosed,ErrorCode.RequestTimeout,ErrorCode.InternalError].includes(e.code);
+    return e?.message==='Not connected'||e?.name==='TimeoutError'||
+      (e instanceof TypeError&&/^(fetch failed|Failed to fetch|Load failed)$/.test(e.message))||
+      ['ECONNRESET','ECONNREFUSED','EPIPE','ETIMEDOUT','EAI_AGAIN','ENOTFOUND','UND_ERR_SOCKET','UND_ERR_CONNECT_TIMEOUT','UND_ERR_HEADERS_TIMEOUT','UND_ERR_BODY_TIMEOUT'].includes(e?.cause?.code??e?.code);
+  };
   const invoke=async(method,args)=>{
     if(closed)throw new Error('client_closed');
-    const started=current;
-    try{return await started[method](...args);}catch(e){
+    const signal=args[method==='callTool'?2:1]?.signal;
+    signal?.throwIfAborted();
+    try{return await current[method](...args);}catch(e){
       const request=args[0];
       const safe=method==='listTools'||reads.has(request?.name)||
         (request?.name==='create_extraction'&&/^[a-zA-Z0-9_-]{8,128}$/.test(request.arguments?.idempotency_key??''));
-      if(!(e instanceof StreamableHTTPError||e?.constructor?.name==='StreamableHTTPError')||e.code!==404||!safe||closed)throw e;
-      if(started===current){
-        pending??=Promise.resolve().then(()=>reconnect()).then(next=>{current=next;}).finally(()=>{pending=undefined;});
-        await pending;
-      }
-      if(closed)throw new Error('client_closed');
+      if(!transient(e)||!safe||closed||signal?.aborted)throw e;
+      current=await reconnect();
+      if(closed){await current.close().catch(()=>{});throw new Error('client_closed');}
+      signal?.throwIfAborted();
+      // Exactly one replay, with the original request and idempotency key.
       return current[method](...args);
     }
   };
-  return {getInstructions:()=>current.getInstructions(),listTools:(...args)=>invoke('listTools',args),
-    callTool:(...args)=>invoke('callTool',args),close:async()=>{closed=true;await pending?.catch(()=>{});await current.close();}};
+  // One POST at a time avoids gateway session_busy responses and concurrent
+  // refresh-token rotation. A rejected request must not poison later calls.
+  const enqueue=(method,args)=>{const result=queue.then(()=>invoke(method,args));queue=result.catch(()=>{});return result;};
+  return {getInstructions:()=>current.getInstructions(),listTools:(...args)=>enqueue('listTools',args),
+    callTool:(...args)=>enqueue('callTool',args),close:async()=>{closed=true;await current.close().catch(()=>{});await queue;}};
 }
 
 export function callbackCode(url, state) {
@@ -142,7 +156,7 @@ export async function connectRemote({onAuthorization = openLogin, onPhase = () =
   const closePortal=async()=>{clearTimeout(portalTimer);if(serverClosed)return;serverClosed=true;server.closeAllConnections();await new Promise(resolve=>server.close(resolve));};
   const transport = () => new StreamableHTTPClientTransport(new URL(endpoint), {authProvider: provider, fetch: pinnedFetch});
   try {
-    client = new Client({name: 'douyin-qoder-https', version: '0.4.5'});
+    client = new Client({name: 'douyin-qoder-https', version: '0.4.6'});
     let wire = transport();
     try {await client.connect(wire);} catch (e) {
       if (!(e instanceof UnauthorizedError)) throw e;
@@ -155,7 +169,7 @@ export async function connectRemote({onAuthorization = openLogin, onPhase = () =
         portal.setPhase('email_verification_required');onPhase('waiting_email_verification');
         await Promise.race([portal.verified,new Promise((_,reject)=>setTimeout(()=>reject(new Error('verification_timeout')),10*60000).unref())]);
         tokens=undefined;verifier=undefined;used=false;recheckingEmail=true;state=randomBytes(32).toString('base64url');resetCode();
-        await client.close().catch(()=>{});client=new Client({name:'douyin-qoder-https',version:'0.4.5'});wire=transport();
+        await client.close().catch(()=>{});client=new Client({name:'douyin-qoder-https',version:'0.4.6'});wire=transport();
         try{await client.connect(wire);}catch(next){if(!(next instanceof UnauthorizedError))throw next;}
       }
       if(account?.status==='email_verification_required')throw new Error('email_verification_required');
@@ -170,16 +184,17 @@ export async function connectRemote({onAuthorization = openLogin, onPhase = () =
         portalTimer=setTimeout(()=>portal.fail('invalid_token'),Math.max(1,tokens.expires_in-10)*1000);
         return{closed:portal.closed,close:async()=>{tokens=undefined;verifier=undefined;await client?.close().catch(()=>{});await closePortal();}};
       }
-      client = new Client({name: 'douyin-qoder-https', version: '0.4.5'});
+      client = new Client({name: 'douyin-qoder-https', version: '0.4.6'});
       wire = transport(); await client.connect(wire);
     }
     onPhase('connected');portal.setPhase('ready');retained=true;
     // Keep the success page reachable briefly; it never contains a bearer token.
     portalTimer=setTimeout(()=>closePortal().catch(()=>{}),5000);portalTimer.unref();
     const resumed=resumableClient(client,async()=>{
-      onPhase('reconnecting_session');await client.close();
-      client=new Client({name:'douyin-qoder-https',version:'0.4.5'});
-      wire=transport();await client.connect(wire);onPhase('connected');return client;
+      onPhase('reconnecting_session');await client.close().catch(()=>{});
+      client=new Client({name:'douyin-qoder-https',version:'0.4.6'});
+      wire=transport();try{await client.connect(wire);}catch(e){await client.close().catch(()=>{});throw e;}
+      onPhase('connected');return client;
     });
     return {client:resumed, close: async () => {tokens = undefined; verifier = undefined; await resumed.close();await closePortal();}};
   } catch (e) {tokens = undefined; verifier = undefined; await client?.close().catch(() => {}); throw e;}

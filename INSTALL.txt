@@ -3,7 +3,7 @@
 GitHub 项目：https://github.com/zhaoyuqi788/douyin-finder-mcp-client
 本安装指令：https://raw.githubusercontent.com/zhaoyuqi788/douyin-finder-mcp-client/main/INSTALL.txt
 服务 HTTPS：https://d34vctdvg0hn6s.cloudfront.net/mcp
-连接器版本：0.4.5。仓库已包含连接器源码、锁定依赖和安装脚本，无需飞书下载权限。
+连接器版本：0.4.6。仓库已包含连接器源码、锁定依赖和安装脚本，无需飞书下载权限。
 当前部署状态（2026-10-12）：邀请码自助注册已开放。现有账号直接登录；新用户需领取有效邀请码，自行注册、设置密码、验证邮箱后兑换开通。
 
 1. 识别我的操作系统、当前 coding 软件及版本。能从会话判断就继续，无法判断时只问软件名称。检查 Node.js 22 或更新版本及 npm；缺少时从 Node.js 官方来源或可信包管理器安装。
@@ -20,7 +20,9 @@ GitHub 项目：https://github.com/zhaoyuqi788/douyin-finder-mcp-client
 
 7. 在目标软件中确认服务可用并加载 9 个工具：search_kols、get_kol、read_evidence、visual_top5、create_extraction、extraction_status、extraction_result、cancel_extraction、get_credits。实际调用 get_credits，再以 {"limit":1} 调用 search_kols，确认真实返回。安装验收仅做读取，不主动创建扣积分的提人任务。若未完成登录或工具调用，明确说明未完成，不要把配置写好当成可用了。
 
-8. 最后告诉我固定安装目录、目标软件及版本、实际配置路径、备份位置、工具数量和真实验收结果。
+8. 已有安装先更新固定目录的完整 client 和仓库文件，再重跑安装脚本；保留邀请码注册与管理页面。在 Extensions → Connectors（或该版本 MCP 设置）关闭再启用 douyin_finder_v2，并新开一个任务验收，旧进程不会自动加载新版。0.4.6 会对会话丢失、网络中断及 HTTP 5xx 等故障自动重建连接并重试一次；提人保持原 idempotency_key。权限拒绝、限额、参数错误和用户取消不重试；任务失败不自动重跑。服务端会话改为闲置 15 分钟过期，持续调用会延长会话。
+
+9. 最后告诉我固定安装目录、目标软件及版本、实际配置路径、备份位置、工具数量和真实验收结果。
 
 之后我给出选人需求时：先 get_credits，再 create_extraction，同一次需求复用同一个 idempotency_key，随后 extraction_status 查进度、extraction_result 取结果。有效名单写入扣 1 个内部积分，重复提交同一幂等键和重复取结果不重复扣分。保留 backend_id、原始数值及日期，缺失信息注明未知。limit 最大 100，模型只从本次候选中选择。
 

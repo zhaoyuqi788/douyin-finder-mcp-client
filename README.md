@@ -1,6 +1,6 @@
 # Douyin Finder MCP 客户端
 
-部署状态（2026-10-12）：邀请码自助注册已开放，使用 0.4.5 客户端。现有账号直接登录，新用户自行注册、验证邮箱并兑换管理员发放的邀请码。
+部署状态（2026-10-12）：邀请码自助注册已开放，使用 0.4.6 客户端。现有账号直接登录，新用户自行注册、验证邮箱并兑换管理员发放的邀请码。
 
 把以下内容复制给你正在使用的软件中的 coding agent，例如 Qoder / Qoder CN：
 
@@ -10,7 +10,7 @@
 
 https://raw.githubusercontent.com/zhaoyuqi788/douyin-finder-mcp-client/main/INSTALL.txt
 
-仓库包含安装说明、安装脚本和 0.4.5 连接器；可以直接克隆，或下载 GitHub 的 Code → Download ZIP。无需从飞书取包。发布包见 [Releases](https://github.com/zhaoyuqi788/douyin-finder-mcp-client/releases)。
+仓库包含安装说明、安装脚本和 0.4.6 连接器；可以直接克隆，或下载 GitHub 的 Code → Download ZIP。无需从飞书取包。发布包见 [Releases](https://github.com/zhaoyuqi788/douyin-finder-mcp-client/releases)。
 
 ## 安装和注册
 
@@ -46,6 +46,16 @@ node install.mjs --output "准备导入的配置 JSON 的绝对路径"
 启用后确认加载 9 个工具：`search_kols`、`get_kol`、`read_evidence`、`visual_top5`、`create_extraction`、`extraction_status`、`extraction_result`、`cancel_extraction`、`get_credits`。调用 `get_credits`，再调用 `search_kols`，参数 `{"limit":1}`。安装验收只读，不自动提交扣积分的提人任务。首次登录超时可在登录完成后关闭再启用 MCP。
 
 客户端依赖安装和配置注册成功，不代表远程登录与工具验收已完成。另一台电脑的网络和登录仍需实际验证。
+
+## 更新与连接恢复（0.4.6）
+
+已有安装在固定目录更新仓库，再运行 `node install.mjs --config "实际配置文件绝对路径"`。下载包安装的用户先把新版解压到固定目录，再运行安装脚本。需要更新整个 `client` 目录，保留邀请码注册与管理页面。之后在 Extensions → Connectors（或该版本 MCP 设置）关闭再启用服务，并新开一个任务验收；正在运行的旧连接器不会自动加载新代码。
+
+服务端会话按闲置 15 分钟过期，持续调用会延长会话；未知或过期会话返回 HTTP 404。访问令牌仍最多 15 分钟，客户端通过现有刷新授权续期。
+
+客户端串行发送同一连接器的工具调用，避免并发请求触发 `session_busy`。会话丢失、网络中断、HTTP 5xx、连接关闭或协议内部错误时，安全读取和带合法幂等键的提人会自动重建连接、重试一次，保持原请求和 `idempotency_key`。权限拒绝、限额、参数错误和用户取消不重试；工具返回的任务失败也不会自动重新提交。重试仍失败时会报告错误，后续调用可以再次尝试恢复。
+
+本仓库和发布包只含客户端，不包含 Mac 服务端、模型、数据库或隧道。服务主机及网络仍需正常运行。
 
 ## 邀请码自助注册
 

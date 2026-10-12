@@ -28,5 +28,7 @@
   "accessTokenMaxLifetimeSeconds": 900,
   "sessionLifetimeSeconds": 900,
   "internalCreditsPerCompletedJob": 1,
-  "totalTokenCeiling": null
+  "totalTokenCeiling": null,
+  "sessionExpirationPolicy": "idle_since_last_authenticated_post_completed",
+  "automaticRetriesPerSafeCall": 1
 }
