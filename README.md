@@ -1,6 +1,6 @@
 # Douyin Finder MCP 客户端
 
-部署状态（2026-10-12）：邀请码永久有效，每个新账号 200 积分，使用 0.4.8 客户端。现有账号直接登录，新用户自行注册、验证邮箱并兑换管理员发放的邀请码。
+部署状态（2026-10-12）：邀请码永久有效，每个新账号 200 积分，使用 0.4.9 客户端。现有账号直接登录，新用户自行注册、验证邮箱并兑换管理员发放的邀请码。
 
 把以下内容复制给你正在使用的软件中的 coding agent，例如 Qoder / Qoder CN：
 
@@ -12,7 +12,7 @@
 
 https://raw.githubusercontent.com/zhaoyuqi788/douyin-finder-mcp-client/main/INSTALL.txt
 
-仓库包含安装说明、安装脚本和 0.4.8 连接器；可以直接克隆，或下载 GitHub 的 Code → Download ZIP。无需从飞书取包。发布包见 [Releases](https://github.com/zhaoyuqi788/douyin-finder-mcp-client/releases)。
+仓库包含安装说明、安装脚本和 0.4.9 连接器；可以直接克隆，或下载 GitHub 的 Code → Download ZIP。无需从飞书取包。发布包见 [Releases](https://github.com/zhaoyuqi788/douyin-finder-mcp-client/releases)。
 
 ## 安装和注册
 
@@ -43,13 +43,21 @@ node install.mjs --output "准备导入的配置 JSON 的绝对路径"
 
 服务 HTTPS 地址：`https://d34vctdvg0hn6s.cloudfront.net/mcp`。
 
-连接器通过本地 STDIO 交给软件，远程通信走 HTTPS。已有账号直接登录，余额和历史任务保持原样。新用户从管理员获得邀请码，在登录页面点击注册，自行设置密码并验证邮箱，然后在本机开通页面兑换邀请码。有效邀请码开通独立账号，200 个内部积分（具体以邀请码为准）；安装包本身不授予访问权限。密码由用户在 Auth0 网页输入。OAuth 回调需要本机 `127.0.0.1:53682` 空闲；令牌仅在进程内存中。
+连接器通过本地 STDIO 交给软件，远程通信走 HTTPS。已有账号直接登录，余额和历史任务保持原样。新用户从管理员获得邀请码，在登录页面点击注册，自行设置密码并验证邮箱，然后在本机开通页面兑换邀请码。有效邀请码开通独立账号，200 个内部积分（具体以邀请码为准）；安装包本身不授予访问权限。密码由用户在 Auth0 网页输入。OAuth 回调需要本机 `127.0.0.1:53682` 空闲；首次登录后，OAuth 访问和刷新令牌默认保存在当前用户的私有缓存中，重启连接器可复用，访问令牌过期时自动刷新。
 
 启用后确认加载 9 个工具：`search_kols`、`get_kol`、`read_evidence`、`visual_top5`、`create_extraction`、`extraction_status`、`extraction_result`、`cancel_extraction`、`get_credits`。调用 `get_credits`，再调用 `search_kols`，参数 `{"limit":1}`。安装验收只读，不自动提交扣积分的提人任务。首次登录超时可在登录完成后关闭再启用 MCP。
 
 客户端依赖安装和配置注册成功，不代表远程登录与工具验收已完成。另一台电脑的网络和登录仍需实际验证。
 
-## 更新与连接恢复（0.4.8）
+## 保留登录状态（0.4.9）
+
+默认将 OAuth 访问令牌与刷新令牌落盘至当前用户的 `~/.douyin-finder-qoder-client/tokens.json`（Windows 为 `%USERPROFILE%\.douyin-finder-qoder-client\tokens.json`）。兼容便携 0.4.5 包已有的同路径缓存。首次登录后，重新启动软件或连接器会复用缓存；访问令牌过期后通过 Auth0 刷新授权自动续期，刷新令牌轮换后原子更新缓存。无需每次打开浏览器。
+
+正常退出、网络故障及客户端升级不会删除缓存。升级时保留用户目录，coding agent 不应把令牌存储改回仅在内存。缓存不包含密码；令牌不能写进软件配置、网页、日志、Issue 或安装包。macOS/Linux 缓存目录权限为 0700，文件为 0600；Windows 缓存放在当前用户的个人目录，请勿共享。
+
+刷新授权过期、被撤销、缓存损坏或被主动清除时，需要重新登录；免重复登录不代表账号授权永不过期。缓存无法写入时会提示 `token_cache_unavailable`，当次仍可使用，但重启可能需登录。需要切换账号时，先关闭连接器，删除上述缓存文件，再启用并用另一账号登录；这不会重置服务端余额或任务。
+
+## 更新与连接恢复（0.4.9）
 
 已有安装在固定目录更新仓库，再运行 `node install.mjs --config "实际配置文件绝对路径"`。下载包安装的用户先把新版解压到固定目录，再运行安装脚本。需要更新整个 `client` 目录，保留邀请码注册与管理页面。之后在 Extensions → Connectors（或该版本 MCP 设置）关闭再启用服务，并新开一个任务验收；正在运行的旧连接器不会自动加载新代码。
 

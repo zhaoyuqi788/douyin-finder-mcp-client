@@ -18,6 +18,7 @@ jobs:
       - run: npm test
       - run: node --check client/qoder-https.mjs
       - run: node --check client/https-oauth.mjs
+      - run: node --check client/token-cache.mjs
       - run: node --check client/account-portal.mjs
       - run: node --check client/manage-invites.mjs
       - name: Real installation with a disposable config

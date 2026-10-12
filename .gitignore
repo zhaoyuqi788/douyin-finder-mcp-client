@@ -7,3 +7,6 @@ mcp-config.generated.json
 ._*
 .env
 .env.*
+.douyin-finder-qoder-client/
+tokens.json
+tokens.json.tmp-*

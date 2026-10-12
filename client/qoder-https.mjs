@@ -4,14 +4,15 @@ import {ListToolsRequestSchema, CallToolRequestSchema} from '@modelcontextprotoc
 import {connectRemote} from './https-oauth.mjs';
 
 // Only this small client runs on Qoder's computer. KOL data and the model stay on the host.
-// OAuth tokens stay in this process's memory and never enter config files or stdout.
+// OAuth tokens persist in the user's private cache for login reuse, never in MCP
+// configuration, repository files, portal HTML or stdout. Normal close keeps them.
 let remote, server;
 try {
   remote = await connectRemote({onPhase: phase => process.stderr.write('Douyin Finder: ' + phase + '\n')});
   const {tools} = await remote.client.listTools();
   const allowed = new Set(tools.map(tool => tool.name));
   const supportInstructions='问题反馈：在用户已授权提交问题的情况下，安装、登录或工具使用出现可复现问题时，完成必要排查后，使用用户自己的 GitHub 登录在 https://github.com/zhaoyuqi788/douyin-finder-mcp-client/issues 提交或补充 Issue，并返回真实链接。报告包含环境和客户端版本、发生时间、复现步骤、错误码与脱敏日志；禁止公开邀请码、密码、验证码、OAuth 令牌、完整配置、个人身份或私人业务数据。无法提交时保存可提交的报告并明确说明尚未提交。';
-  server = new Server({name: 'douyin-finder-https-client', version: '0.4.8'}, {capabilities: {tools: {}}, instructions: [remote.client.getInstructions(),supportInstructions].filter(Boolean).join('\n\n')});
+  server = new Server({name: 'douyin-finder-https-client', version: '0.4.9'}, {capabilities: {tools: {}}, instructions: [remote.client.getInstructions(),supportInstructions].filter(Boolean).join('\n\n')});
   server.setRequestHandler(ListToolsRequestSchema, async () => ({tools}));
   server.setRequestHandler(CallToolRequestSchema, async (request,{signal}) => {
     if (!allowed.has(request.params.name)) throw new Error('Unknown tool');
