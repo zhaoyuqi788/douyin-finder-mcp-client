@@ -130,7 +130,7 @@ export async function connectRemote({onAuthorization = openLogin, onPhase = () =
     if (used) {res.writeHead(409); res.end('Callback already used.'); return;}
     try {
       const code = callbackCode(req.url, state); used = true;
-      res.writeHead(303, {Location: '/complete'}); res.end(); resolveCode(code);
+      res.writeHead(303, {Location: portal.pagePath}); res.end(); resolveCode(code);
     } catch (e) {
       res.writeHead(400); res.end('Invalid or denied authorization.');
       if (e.message === 'authorization_denied') rejectCode(new Error('authorization_denied'));
@@ -142,7 +142,7 @@ export async function connectRemote({onAuthorization = openLogin, onPhase = () =
   const closePortal=async()=>{clearTimeout(portalTimer);if(serverClosed)return;serverClosed=true;server.closeAllConnections();await new Promise(resolve=>server.close(resolve));};
   const transport = () => new StreamableHTTPClientTransport(new URL(endpoint), {authProvider: provider, fetch: pinnedFetch});
   try {
-    client = new Client({name: 'douyin-qoder-https', version: '0.4.4'});
+    client = new Client({name: 'douyin-qoder-https', version: '0.4.5'});
     let wire = transport();
     try {await client.connect(wire);} catch (e) {
       if (!(e instanceof UnauthorizedError)) throw e;
@@ -155,7 +155,7 @@ export async function connectRemote({onAuthorization = openLogin, onPhase = () =
         portal.setPhase('email_verification_required');onPhase('waiting_email_verification');
         await Promise.race([portal.verified,new Promise((_,reject)=>setTimeout(()=>reject(new Error('verification_timeout')),10*60000).unref())]);
         tokens=undefined;verifier=undefined;used=false;recheckingEmail=true;state=randomBytes(32).toString('base64url');resetCode();
-        await client.close().catch(()=>{});client=new Client({name:'douyin-qoder-https',version:'0.4.4'});wire=transport();
+        await client.close().catch(()=>{});client=new Client({name:'douyin-qoder-https',version:'0.4.5'});wire=transport();
         try{await client.connect(wire);}catch(next){if(!(next instanceof UnauthorizedError))throw next;}
       }
       if(account?.status==='email_verification_required')throw new Error('email_verification_required');
@@ -170,7 +170,7 @@ export async function connectRemote({onAuthorization = openLogin, onPhase = () =
         portalTimer=setTimeout(()=>portal.fail('invalid_token'),Math.max(1,tokens.expires_in-10)*1000);
         return{closed:portal.closed,close:async()=>{tokens=undefined;verifier=undefined;await client?.close().catch(()=>{});await closePortal();}};
       }
-      client = new Client({name: 'douyin-qoder-https', version: '0.4.4'});
+      client = new Client({name: 'douyin-qoder-https', version: '0.4.5'});
       wire = transport(); await client.connect(wire);
     }
     onPhase('connected');portal.setPhase('ready');retained=true;
@@ -178,7 +178,7 @@ export async function connectRemote({onAuthorization = openLogin, onPhase = () =
     portalTimer=setTimeout(()=>closePortal().catch(()=>{}),5000);portalTimer.unref();
     const resumed=resumableClient(client,async()=>{
       onPhase('reconnecting_session');await client.close();
-      client=new Client({name:'douyin-qoder-https',version:'0.4.4'});
+      client=new Client({name:'douyin-qoder-https',version:'0.4.5'});
       wire=transport();await client.connect(wire);onPhase('connected');return client;
     });
     return {client:resumed, close: async () => {tokens = undefined; verifier = undefined; await resumed.close();await closePortal();}};

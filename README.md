@@ -1,6 +1,6 @@
 # Douyin Finder MCP 客户端
 
-部署状态（2026-10-12）：邀请码自助注册已开放，使用 0.4.4 客户端。现有账号直接登录，新用户自行注册、验证邮箱并兑换管理员发放的邀请码。
+部署状态（2026-10-12）：邀请码自助注册已开放，使用 0.4.5 客户端。现有账号直接登录，新用户自行注册、验证邮箱并兑换管理员发放的邀请码。
 
 把以下内容复制给你正在使用的软件中的 coding agent，例如 Qoder / Qoder CN：
 
@@ -10,7 +10,7 @@
 
 https://raw.githubusercontent.com/zhaoyuqi788/douyin-finder-mcp-client/main/INSTALL.txt
 
-仓库包含安装说明、安装脚本和 0.4.4 连接器；可以直接克隆，或下载 GitHub 的 Code → Download ZIP。无需从飞书取包。发布包见 [Releases](https://github.com/zhaoyuqi788/douyin-finder-mcp-client/releases)。
+仓库包含安装说明、安装脚本和 0.4.5 连接器；可以直接克隆，或下载 GitHub 的 Code → Download ZIP。无需从飞书取包。发布包见 [Releases](https://github.com/zhaoyuqi788/douyin-finder-mcp-client/releases)。
 
 ## 安装和注册
 

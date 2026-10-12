@@ -1,4 +1,4 @@
-# Douyin Finder HTTPS 连接器 0.4.4
+# Douyin Finder HTTPS 连接器 0.4.5
 
 从仓库根目录的 [INSTALL.txt](../INSTALL.txt) 安装，并使用 [install.mjs](../install.mjs) 注册到目标软件。
 

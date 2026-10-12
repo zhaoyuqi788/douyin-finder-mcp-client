@@ -23,17 +23,20 @@ export function portalHtml(nonce,mode){
 }
 
 export function createAccountPortal({mode='mcp',request,host='127.0.0.1:53682'}={}){
- const nonce=randomBytes(32).toString('base64url'),origin='http://'+host;
+ const nonce=randomBytes(32).toString('base64url'),ticket=randomBytes(32).toString('base64url'),origin='http://'+host,pagePath='/complete?ticket='+ticket;
  let phase='working',error,resolveActivated,resolveClosed,resolveVerified,verified;
  const activated=new Promise(r=>resolveActivated=r),closed=new Promise(r=>resolveClosed=r);
  const resetVerification=()=>{verified=new Promise(r=>resolveVerified=r);};resetVerification();
  const json=(res,status,body)=>{res.writeHead(status,{'content-type':'application/json; charset=utf-8'});res.end(JSON.stringify(body));};
- return{activated,closed,get verified(){return verified;},setPhase:(value)=>{phase=value;if(value==='email_verification_required')resetVerification();},fail:code=>{phase='failed';error=code;},async handle(req,res){
-  if(req.url!=='/complete'&&!req.url?.startsWith('/portal/'))return false;
+ return{activated,closed,pagePath,get verified(){return verified;},setPhase:(value)=>{phase=value;if(value==='email_verification_required')resetVerification();},fail:code=>{phase='failed';error=code;},async handle(req,res){
+  const complete=req.url==='/complete'||req.url?.startsWith('/complete?');
+  if(!complete&&!req.url?.startsWith('/portal/'))return false;
   res.setHeader('cache-control','no-store');res.setHeader('referrer-policy','no-referrer');res.setHeader('x-content-type-options','nosniff');
   res.setHeader('content-security-policy',`default-src 'none'; script-src 'nonce-${nonce}'; style-src 'nonce-${nonce}'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'`);
   if(req.headers.host!==host||(req.headers.origin&&req.headers.origin!==origin)) {json(res,403,{error:'invalid_portal_origin'});return true;}
-  if(req.url==='/complete'&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8'});res.end(portalHtml(nonce,mode));return true;}
+  // The page ticket is independent of CSRF. A local process knowing the fixed
+  // callback port cannot fetch the form nonce and reuse the owner's bearer proxy.
+  if(complete&&req.method==='GET'){if(req.url!==pagePath){json(res,403,{error:'invalid_portal_ticket'});return true;}res.writeHead(200,{'content-type':'text/html; charset=utf-8'});res.end(portalHtml(nonce,mode));return true;}
   if(req.headers['x-portal-csrf']!==nonce){json(res,403,{error:'invalid_portal_csrf'});return true;}
   try{
    if(req.url==='/portal/status'&&req.method==='GET'){json(res,200,{phase,...(error?{error}:{})});return true;}
