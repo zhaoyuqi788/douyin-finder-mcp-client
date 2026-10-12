@@ -1,5 +1,7 @@
 # Douyin Finder MCP 客户端
 
+部署状态（2026-10-12）：0.4.4 客户端和批量管理入口已准备好，新用户注册权限尚待服务管理员发布 Auth0 规则；现有账号仍可直接登录。下面是发布后的邀请码注册流程。
+
 把以下内容复制给你正在使用的软件中的 coding agent，例如 Qoder / Qoder CN：
 
 > 请读取 https://github.com/zhaoyuqi788/douyin-finder-mcp-client 中的 INSTALL.txt，实际安装 Douyin Finder V2，并在我现在使用的软件中注册、启用 douyin_finder_v2 MCP。保留已有配置，完成浏览器登录后的只读工具验收，不要只给我教程。
