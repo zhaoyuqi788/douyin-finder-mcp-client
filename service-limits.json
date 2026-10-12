@@ -1,0 +1,32 @@
+{
+  "updated_at": "2026-10-12",
+  "limits": {
+    "maxPageSize": 100,
+    "maxOffset": 2000,
+    "maxBriefChars": 8000,
+    "maxQueryChars": 300,
+    "maxSelectedIds": 100,
+    "maxMissingInformation": 20,
+    "maxRequestBytes": 65536,
+    "maxModelInputBytes": 131072,
+    "maxModelOutputBytes": 262144,
+    "maxResultBytes": 262144,
+    "candidateRowsPerHour": 2000,
+    "queryCallsPerMinute": 120,
+    "httpCallsPerMinute": 600,
+    "dailyNewJobs": 100,
+    "pendingJobs": 50,
+    "maxConcurrentModels": 2,
+    "maxConcurrentHttp": 12,
+    "maxSessions": 64,
+    "maxConnections": 128,
+    "taskTimeoutMs": 1200000,
+    "modelStartupTimeoutMs": 180000,
+    "modelIdleTimeoutMs": 600000
+  },
+  "visualTop5": 5,
+  "accessTokenMaxLifetimeSeconds": 900,
+  "sessionLifetimeSeconds": 900,
+  "internalCreditsPerCompletedJob": 1,
+  "totalTokenCeiling": null
+}

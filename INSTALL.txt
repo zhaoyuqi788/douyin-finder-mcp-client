@@ -21,7 +21,7 @@ GitHub 项目：https://github.com/zhaoyuqi788/douyin-finder-mcp-client
 
 8. 最后告诉我固定安装目录、目标软件及版本、实际配置路径、备份位置、工具数量和真实验收结果。
 
-之后我给出选人需求时：先 get_credits，再 create_extraction，同一次需求复用同一个 idempotency_key，随后 extraction_status 查进度、extraction_result 取结果。有效名单写入扣 1 个内部积分，重复提交同一幂等键和重复取结果不重复扣分。保留 backend_id、原始数值及日期，缺失信息注明未知。limit 最大 20，模型只从本次候选中选择。
+之后我给出选人需求时：先 get_credits，再 create_extraction，同一次需求复用同一个 idempotency_key，随后 extraction_status 查进度、extraction_result 取结果。有效名单写入扣 1 个内部积分，重复提交同一幂等键和重复取结果不重复扣分。保留 backend_id、原始数值及日期，缺失信息注明未知。limit 最大 100，模型只从本次候选中选择。
 
 客户端只需 Node.js、连接器和 coding 软件；数据和模型在服务主机，主机需要在线。公开 GitHub 地址方便下载安装，不等于获得服务账号权限。
 

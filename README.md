@@ -47,9 +47,11 @@ node install.mjs --output "准备导入的配置 JSON 的绝对路径"
 
 ## 使用范围
 
+2026-10-12 服务端已提高额度：每账号每小时 2,000 行候选、每分钟 120 次目录请求及 600 次网络请求、滚动 24 小时 100 个新任务、最多 50 个待处理任务；全服务同时运行 2 个模型任务。单次候选和结果最多 100 位。任务执行最长 20 分钟，需求最多 8,000 字符，query 最多 300 字符。已安装客户端在软件中关闭再启用 MCP，即可刷新工具参数上限。完整数值见 [service-limits.json](service-limits.json)。
+
 V1 提供历史 KOL 数据；V2 用服务主机上的模型异步选人。数据、模型和后台任务在主机运行，客户端无需模型密钥或数据库。主机必须在线。
 
-选人时先查积分，提交 `create_extraction`，同一次需求复用 `idempotency_key`，用 `extraction_status` 查进度，`extraction_result` 取名单。有效名单写入扣 1 个内部积分，同一幂等键的重试和重复取结果不重复扣分。保留 `backend_id`、原始数值及日期；缺失信息为未知。`limit` 最大 20，并同时限定候选和结果数量。
+选人时先查积分，提交 `create_extraction`，同一次需求复用 `idempotency_key`，用 `extraction_status` 查进度，`extraction_result` 取名单。有效名单写入扣 1 个内部积分，同一幂等键的重试和重复取结果不重复扣分。保留 `backend_id`、原始数值及日期；缺失信息为未知。`limit` 最大 100，并同时限定候选和结果数量。
 
 连接器的 OAuth audience 保留原授权标识，它不是访问地址；实际网络目标为 AWS 与 Auth0。
 
