@@ -4,10 +4,11 @@ import {spawn} from 'node:child_process';
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StreamableHTTPClientTransport, StreamableHTTPError} from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import {UnauthorizedError} from '@modelcontextprotocol/sdk/client/auth.js';
+import {createAccountPortal} from './account-portal.mjs';
 
 export const endpoint = 'https://d34vctdvg0hn6s.cloudfront.net/mcp';
 // Existing Auth0 API identifier, never a fetch destination. Keeping it preserves
-// the exact two-account authorization and existing refresh-token grants.
+// existing account bindings and refresh-token grants.
 export const tokenAudience = 'https://douyin-mcp.qizhaoyu.com/mcp';
 export const issuer = 'https://dev-0e58ghlgnx8c41gi.us.auth0.com/';
 export const clientId = 'ot3UbN6eon6kHwC6e4CKGxxGm10oiEM6';
@@ -65,7 +66,8 @@ function openLogin(url) {
   child.unref();
 }
 
-export async function connectRemote({onAuthorization = openLogin, onPhase = () => {}} = {}) {
+export async function connectRemote({onAuthorization = openLogin, onPhase = () => {},mode='mcp'} = {}) {
+  if(!['mcp','admin'].includes(mode))throw new Error('invalid_mode');
   const metadataResponse = await pinnedFetch(new URL('.well-known/openid-configuration', issuer));
   if (!metadataResponse.ok) throw new Error('metadata_unavailable');
   const metadataText = await metadataResponse.text();
@@ -77,9 +79,18 @@ export async function connectRemote({onAuthorization = openLogin, onPhase = () =
     const u = new URL(m[key]);
     if (u.origin !== new URL(issuer).origin || u.protocol !== 'https:' || u.username || u.password || u.hash) throw new Error('metadata_invalid');
   }
-  const state = randomBytes(32).toString('base64url');
-  let tokens, verifier, resolveCode, rejectCode, used = false;
-  const codePromise = new Promise((resolve, reject) => {resolveCode = resolve; rejectCode = reject;});
+  let state = randomBytes(32).toString('base64url');
+  let tokens, verifier, resolveCode, rejectCode, used = false,recheckingEmail=false;
+  const accountRequest=async(path,body)=>{
+    if(!tokens?.access_token)throw new Error('login_required');
+    const r=await pinnedFetch(new URL(path,endpoint),{method:body===undefined?'GET':'POST',headers:{authorization:'Bearer '+tokens.access_token,...(body===undefined?{}:{'content-type':'application/json'})},...(body===undefined?{}:{body:JSON.stringify(body)})});
+    const text=await r.text();if(Buffer.byteLength(text)>65536)throw new Error('response_too_large');
+    let value;try{value=JSON.parse(text);}catch{throw new Error('gateway_unavailable');}
+    if(!r.ok){const e=new Error(value.error??'account_request_failed');e.status=r.status;throw e;}return value;
+  };
+  const portal=createAccountPortal({mode,request:accountRequest});
+  let codePromise;
+  const resetCode=()=>{codePromise=new Promise((resolve,reject)=>{resolveCode=resolve;rejectCode=reject;});codePromise.catch(()=>{});};resetCode();
   // A denied callback may arrive before connect() returns UnauthorizedError.
   codePromise.catch(() => {});
   const provider = {
@@ -104,16 +115,18 @@ export async function connectRemote({onAuthorization = openLogin, onPhase = () =
       // Transport resource and Auth0 API audience are separately pinned constants.
       url.searchParams.set('audience', tokenAudience);
       url.searchParams.set('scope', scope);
+      if(recheckingEmail)url.searchParams.set('prompt','login');
       onPhase('waiting_owner_login');
       await onAuthorization(url.toString());
     }
   };
-  const server = createServer((req, res) => {
+  const server = createServer(async(req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'");
     res.setHeader('Referrer-Policy', 'no-referrer');
-    if (req.method !== 'GET' || req.headers.host !== '127.0.0.1:53682' || (req.url?.length ?? 0) > 4096) {res.writeHead(400); res.end('Invalid callback.'); return;}
-    if (req.url === '/complete') {res.writeHead(200, {'Content-Type': 'text/plain; charset=utf-8'}); res.end('登录完成。可回到 Qoder。'); return;}
+    if (req.headers.host !== '127.0.0.1:53682' || (req.url?.length ?? 0) > 4096) {res.writeHead(400); res.end('Invalid callback.'); return;}
+    if(await portal.handle(req,res))return;
+    if (req.method !== 'GET') {res.writeHead(400); res.end('Invalid callback.'); return;}
     if (used) {res.writeHead(409); res.end('Callback already used.'); return;}
     try {
       const code = callbackCode(req.url, state); used = true;
@@ -125,25 +138,50 @@ export async function connectRemote({onAuthorization = openLogin, onPhase = () =
   });
   await new Promise((resolve, reject) => {server.once('error', reject); server.listen(53682, '127.0.0.1', resolve);});
   const loginTimer = setTimeout(() => rejectCode(new Error('login_timeout')), 10 * 60000);
-  let client;
+  let client,retained=false,portalTimer,serverClosed=false;
+  const closePortal=async()=>{clearTimeout(portalTimer);if(serverClosed)return;serverClosed=true;server.closeAllConnections();await new Promise(resolve=>server.close(resolve));};
   const transport = () => new StreamableHTTPClientTransport(new URL(endpoint), {authProvider: provider, fetch: pinnedFetch});
   try {
-    client = new Client({name: 'douyin-qoder-https', version: '0.4.3'});
+    client = new Client({name: 'douyin-qoder-https', version: '0.4.4'});
     let wire = transport();
     try {await client.connect(wire);} catch (e) {
       if (!(e instanceof UnauthorizedError)) throw e;
-      const code = await codePromise;
-      onPhase('token_exchange'); await wire.finishAuth(code); verifier = undefined;
-      client = new Client({name: 'douyin-qoder-https', version: '0.4.3'});
+      let account;
+      for(let attempt=0;attempt<5;attempt++){
+        const code = await codePromise;
+        onPhase('token_exchange'); await wire.finishAuth(code); verifier = undefined;
+        account=await accountRequest('/onboarding/status');
+        if(account.status!=='email_verification_required')break;
+        portal.setPhase('email_verification_required');onPhase('waiting_email_verification');
+        await Promise.race([portal.verified,new Promise((_,reject)=>setTimeout(()=>reject(new Error('verification_timeout')),10*60000).unref())]);
+        tokens=undefined;verifier=undefined;used=false;recheckingEmail=true;state=randomBytes(32).toString('base64url');resetCode();
+        await client.close().catch(()=>{});client=new Client({name:'douyin-qoder-https',version:'0.4.4'});wire=transport();
+        try{await client.connect(wire);}catch(next){if(!(next instanceof UnauthorizedError))throw next;}
+      }
+      if(account?.status==='email_verification_required')throw new Error('email_verification_required');
+      if(account.status==='invitation_required'){
+        if(mode==='admin')throw new Error('admin_required');
+        portal.setPhase('invitation_required');onPhase('waiting_invitation');
+        await Promise.race([portal.activated,new Promise((_,reject)=>setTimeout(()=>reject(new Error('invitation_timeout')),10*60000).unref())]);
+      }
+      if(mode==='admin'){
+        if(!account.is_admin)throw new Error('admin_required');
+        portal.setPhase('admin_ready');onPhase('admin_ready');retained=true;
+        portalTimer=setTimeout(()=>portal.fail('invalid_token'),Math.max(1,tokens.expires_in-10)*1000);
+        return{closed:portal.closed,close:async()=>{tokens=undefined;verifier=undefined;await client?.close().catch(()=>{});await closePortal();}};
+      }
+      client = new Client({name: 'douyin-qoder-https', version: '0.4.4'});
       wire = transport(); await client.connect(wire);
     }
-    onPhase('connected');
+    onPhase('connected');portal.setPhase('ready');retained=true;
+    // Keep the success page reachable briefly; it never contains a bearer token.
+    portalTimer=setTimeout(()=>closePortal().catch(()=>{}),5000);portalTimer.unref();
     const resumed=resumableClient(client,async()=>{
       onPhase('reconnecting_session');await client.close();
-      client=new Client({name:'douyin-qoder-https',version:'0.4.3'});
+      client=new Client({name:'douyin-qoder-https',version:'0.4.4'});
       wire=transport();await client.connect(wire);onPhase('connected');return client;
     });
-    return {client:resumed, close: async () => {tokens = undefined; verifier = undefined; await resumed.close();}};
+    return {client:resumed, close: async () => {tokens = undefined; verifier = undefined; await resumed.close();await closePortal();}};
   } catch (e) {tokens = undefined; verifier = undefined; await client?.close().catch(() => {}); throw e;}
-  finally {clearTimeout(loginTimer); await new Promise(resolve => server.close(resolve));}
+  finally {clearTimeout(loginTimer);if(!retained)await closePortal();}
 }

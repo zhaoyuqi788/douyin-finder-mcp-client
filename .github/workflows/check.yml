@@ -13,10 +13,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm test
       - run: npm ci --ignore-scripts --no-audit --no-fund
         working-directory: client
+      - run: npm test
       - run: node --check client/qoder-https.mjs
       - run: node --check client/https-oauth.mjs
+      - run: node --check client/account-portal.mjs
+      - run: node --check client/manage-invites.mjs
       - name: Real installation with a disposable config
         run: node install.mjs --config "${{ runner.temp }}/douyin-install-check.json"

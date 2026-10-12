@@ -96,7 +96,7 @@ async function main() {
     try {await access(configPath);} catch {throw new Error('未找到已有配置。请在目标软件 MCP 设置中确认实际文件，再用 --config 提供绝对路径。');}
   }
   console.log(JSON.stringify(await installMcp({configPath, outputPath: values.output, dryRun: values['dry-run']}), null, 2));
-  console.log('下一步：在目标软件启用 douyin_finder_v2，由用户在浏览器登录；确认 9 个工具并调用 get_credits 和 search_kols({limit:1})。此时尚未完成远程验收。');
+  console.log('下一步：在目标软件启用 douyin_finder_v2，由用户在浏览器登录，新用户自行注册、验证邮箱并兑换邀请码；确认 9 个工具并调用 get_credits 和 search_kols({limit:1})。此时尚未完成远程验收。');
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

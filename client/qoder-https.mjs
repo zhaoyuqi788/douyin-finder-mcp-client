@@ -10,7 +10,7 @@ try {
   remote = await connectRemote({onPhase: phase => process.stderr.write('Douyin Finder: ' + phase + '\n')});
   const {tools} = await remote.client.listTools();
   const allowed = new Set(tools.map(tool => tool.name));
-  server = new Server({name: 'douyin-finder-https-client', version: '0.4.3'}, {capabilities: {tools: {}}, instructions: remote.client.getInstructions()});
+  server = new Server({name: 'douyin-finder-https-client', version: '0.4.4'}, {capabilities: {tools: {}}, instructions: remote.client.getInstructions()});
   server.setRequestHandler(ListToolsRequestSchema, async () => ({tools}));
   server.setRequestHandler(CallToolRequestSchema, async request => {
     if (!allowed.has(request.params.name)) throw new Error('Unknown tool');
@@ -27,7 +27,7 @@ try {
     network_code:/^[A-Z_]{1,50}$/.test(e?.cause?.code??'')?e.cause.code:null,
     http_code:Number.isSafeInteger(e?.code)&&e.code>=400&&e.code<=599?e.code:null,
     frames:(e?.stack??'').split('\n').slice(1).map(line=>line.match(/([^/()\s]+\.m?js):(\d+):(\d+)/)?.slice(1)).filter(Boolean)};
-  process.stderr.write('Douyin Finder HTTPS connection failed. Check owner login, network and callback port 53682.\n');
+  process.stderr.write('Douyin Finder HTTPS connection failed. Check login, email verification, invitation, network and callback port 53682.\n');
   process.stderr.write('Douyin Finder diagnostic: '+JSON.stringify(diagnostic)+'\n');
   await remote?.close().catch(()=>{}); process.exitCode = 1;
 }

@@ -8,7 +8,7 @@
 
 https://raw.githubusercontent.com/zhaoyuqi788/douyin-finder-mcp-client/main/INSTALL.txt
 
-仓库包含安装说明、安装脚本和 0.4.3 连接器；可以直接克隆，或下载 GitHub 的 Code → Download ZIP。无需从飞书取包。发布包见 [Releases](https://github.com/zhaoyuqi788/douyin-finder-mcp-client/releases)。
+仓库包含安装说明、安装脚本和 0.4.4 连接器；可以直接克隆，或下载 GitHub 的 Code → Download ZIP。无需从飞书取包。发布包见 [Releases](https://github.com/zhaoyuqi788/douyin-finder-mcp-client/releases)。
 
 ## 安装和注册
 
@@ -39,11 +39,33 @@ node install.mjs --output "准备导入的配置 JSON 的绝对路径"
 
 服务 HTTPS 地址：`https://d34vctdvg0hn6s.cloudfront.net/mcp`。
 
-连接器通过本地 STDIO 交给软件，远程通信走 HTTPS。登录使用管理员已开通、已验证邮箱的 MCP 账号；安装客户端不会开通账号。密码由用户在浏览器输入。OAuth 回调需要本机 `127.0.0.1:53682` 空闲；令牌仅在进程内存中。
+连接器通过本地 STDIO 交给软件，远程通信走 HTTPS。已有账号直接登录，余额和历史任务保持原样。新用户从管理员获得邀请码，在登录页面点击注册，自行设置密码并验证邮箱，然后在本机开通页面兑换邀请码。有效邀请码开通独立账号，默认 20 个内部积分（具体以邀请码为准）；安装包本身不授予访问权限。密码由用户在 Auth0 网页输入。OAuth 回调需要本机 `127.0.0.1:53682` 空闲；令牌仅在进程内存中。
 
 启用后确认加载 9 个工具：`search_kols`、`get_kol`、`read_evidence`、`visual_top5`、`create_extraction`、`extraction_status`、`extraction_result`、`cancel_extraction`、`get_credits`。调用 `get_credits`，再调用 `search_kols`，参数 `{"limit":1}`。安装验收只读，不自动提交扣积分的提人任务。首次登录超时可在登录完成后关闭再启用 MCP。
 
 客户端依赖安装和配置注册成功，不代表远程登录与工具验收已完成。另一台电脑的网络和登录仍需实际验证。
+
+## 邀请码自助注册
+
+1. 向管理员领取一个邀请码，再请当前软件的 coding agent 按 INSTALL.txt 安装和启用 MCP。
+2. 新用户在自动打开的 Auth0 登录页点击“注册”，输入自己的邮箱并自行设置密码；已有账号直接登录。
+3. 打开注册邮箱，点击验证链接。回到开通页面点击“我已验证邮箱，继续登录”，重新确认登录。
+4. 在本机开通页面粘贴邀请码，点击“开通账号”。看到“登录完成。可回到 Qoder 或当前软件。”后返回软件。
+5. Agent 确认 9 个工具，并调用 get_credits 和 search_kols({limit:1}) 验收。
+
+每个邀请码仅开通一个账号，默认 7 天有效；过期、已撤销或已被其他人兑换的码无法使用。同一账号重试同一码不会重复发积分。新账号只有本人任务与余额，不具备邀请码管理权限。未验证邮箱或未兑换有效邀请码的账号不能读取 KOL 或提交提人任务。
+
+## 管理员批量生成入口
+
+在已安装的仓库根目录运行：
+
+```text
+node client/manage-invites.mjs
+```
+
+macOS 可双击仓库中的 `管理邀请码.command`，Windows 可双击 `管理邀请码.cmd`。需要先完成客户端依赖安装。页面只允许服务现有管理员账号使用，可以设置数量（1–100）、每人初始积分（1–100000）和有效期（1–30 天）；默认 10 个、20 积分、7 天。生成后点击“下载 TXT”，分别发给用户。完整邀请码只显示生成当次，服务端只保存哈希；遗失未兑换的码时可以撤销后重新生成。已兑换的码不能撤销账号权限，需管理员另行禁用账号。
+
+邀请码和下载 TXT 请私下保管，不上传公开 GitHub 或公共飞书页面。管理页面中的“结束管理”会关闭本次连接。管理登录与 MCP 登录共用本机回调端口；若提示占用，请先关闭正在登录的 MCP，管理完成后再启用。
 
 ## 使用范围
 
